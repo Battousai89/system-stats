@@ -1,62 +1,19 @@
 package constants
 
-// DefaultDiskPathWindows путь к системному диску по умолчанию для Windows
-const DefaultDiskPathWindows = "C:\\"
+// ============================================================================
+// Cross-platform constants (GPU ID mappings and shared data)
+// ============================================================================
 
-// DefaultDiskLetterWindows буква системного диска для Windows
-const DefaultDiskLetterWindows = "C:"
-
-// PowerShell команды Windows
-const (
-	// CPU
-	Win32Processor                  = "Win32_Processor"
-	Win32PerfFormattedDataPerfOSProcessor = "Win32_PerfFormattedData_PerfOS_Processor"
-	Win32PerfRawDataPerfOSSystem    = "Win32_PerfRawData_PerfOS_System"
-	MSAcpiThermalZoneTemperature    = "MSAcpi_ThermalZoneTemperature"
-	
-	// Memory
-	Win32PerfFormattedDataPerfOSMemory = "Win32_PerfFormattedData_PerfOS_Memory"
-	Win32OperatingSystem              = "Win32_OperatingSystem"
-	Win32PageFileUsage                = "Win32_PageFileUsage"
-	
-	// Disk
-	Win32LogicalDisk                  = "Win32_LogicalDisk"
-	Win32PerfFormattedDataPerfDiskLogicalDisk = "Win32_PerfFormattedData_PerfDisk_LogicalDisk"
-	Win32DiskDrive                    = "Win32_DiskDrive"
-	
-	// Network
-	Win32PerfFormattedDataTcpipNetworkInterface = "Win32_PerfFormattedData_Tcpip_NetworkInterface"
-	Win32PerfFormattedDataTcpipTCPv4 = "Win32_PerfFormattedData_Tcpip_TCPv4"
-	Win32PerfFormattedDataTcpipUDPv4 = "Win32_PerfFormattedData_Tcpip_UDPv4"
-	Win32PerfFormattedDataTcpipIPv4 = "Win32_PerfFormattedData_Tcpip_IPv4"
-	
-	// Host
-	Win32ComputerSystem = "Win32_ComputerSystem"
-	
-	// GPU
-	Win32VideoController              = "Win32_VideoController"
-	Win32DesktopMonitor               = "Win32_DesktopMonitor"
-)
-
-// WMI namespaces
-const (
-	RootWMI = "root/wmi"
-	RootCIMV2 = "root/cimv2"
-)
-
-// Физические диски Windows
-const PhysicalDrivePrefix = `\\.\\PHYSICALDRIVE`
-
-// SSD индикаторы в названии модели
+// SSDIndicators contains keywords to identify SSD drives by model name
 var SSDIndicators = []string{
 	"ssd", "solid state", "nvme", "m.2", "v-nand",
 	"qvo", "evo", "mx500", "860", "870", "970", "980", "990",
 	"su635", "su650", "su800", "bx500", "mx300",
 	"crucial", "samsung", "intel", "kingston", "sandisk",
-	"wd black sn", "wd blue sn", "wd red sn", "wd blue sa", // WD SSD
+	"wd black sn", "wd blue sn", "wd red sn", "wd blue sa",
 }
 
-// AMDGPUIDs карта ID GPU AMD
+// AMDGPUIDs maps AMD GPU device IDs to names
 var AMDGPUIDs = map[string]string{
 	"0x6660": "AMD Radeon R7 M260/M265",
 	"0x6663": "AMD Radeon R7 M260",
@@ -90,7 +47,7 @@ var AMDGPUIDs = map[string]string{
 	"0x1981": "AMD Radeon 660M",
 }
 
-// IntelGPUIDs карта ID GPU Intel
+// IntelGPUIDs maps Intel GPU device IDs to names
 var IntelGPUIDs = map[string]string{
 	"0x5912": "Intel HD Graphics 630",
 	"0x591B": "Intel HD Graphics 630",
@@ -112,7 +69,7 @@ var IntelGPUIDs = map[string]string{
 	"0x7D55": "Intel Arc A750M",
 }
 
-// NVIDIAGPUIDs карта ID GPU NVIDIA
+// NVIDIAGPUIDs maps NVIDIA GPU device IDs to names
 var NVIDIAGPUIDs = map[string]string{
 	"0x1B80": "NVIDIA GeForce GTX 1050 Ti",
 	"0x1B81": "NVIDIA GeForce GTX 1050",
@@ -177,3 +134,78 @@ var NVIDIAGPUIDs = map[string]string{
 	"0x3205": "NVIDIA GeForce RTX 5070 Ti",
 	"0x3206": "NVIDIA GeForce RTX 5070",
 }
+
+// ============================================================================
+// Windows-specific constants
+// ============================================================================
+
+// DefaultDiskPathWindows is the default system disk path for Windows
+const DefaultDiskPathWindows = "C:\\"
+
+// DefaultDiskLetterWindows is the system disk letter for Windows
+const DefaultDiskLetterWindows = "C:"
+
+// Windows PowerShell commands (WMI classes)
+const (
+	// CPU
+	Win32Processor                  = "Win32_Processor"
+	Win32PerfFormattedDataPerfOSProcessor = "Win32_PerfFormattedData_PerfOS_Processor"
+	Win32PerfRawDataPerfOSSystem    = "Win32_PerfRawData_PerfOS_System"
+	MSAcpiThermalZoneTemperature    = "MSAcpi_ThermalZoneTemperature"
+
+	// Memory
+	Win32PerfFormattedDataPerfOSMemory = "Win32_PerfFormattedData_PerfOS_Memory"
+	Win32OperatingSystem              = "Win32_OperatingSystem"
+	Win32PageFileUsage                = "Win32_PageFileUsage"
+
+	// Disk
+	Win32LogicalDisk                  = "Win32_LogicalDisk"
+	Win32PerfFormattedDataPerfDiskLogicalDisk = "Win32_PerfFormattedData_PerfDisk_LogicalDisk"
+	Win32DiskDrive                    = "Win32_DiskDrive"
+
+	// Network
+	Win32PerfFormattedDataTcpipNetworkInterface = "Win32_PerfFormattedData_Tcpip_NetworkInterface"
+	Win32PerfFormattedDataTcpipTCPv4 = "Win32_PerfFormattedData_Tcpip_TCPv4"
+	Win32PerfFormattedDataTcpipUDPv4 = "Win32_PerfFormattedData_Tcpip_UDPv4"
+	Win32PerfFormattedDataTcpipIPv4 = "Win32_PerfFormattedData_Tcpip_IPv4"
+
+	// Host
+	Win32ComputerSystem = "Win32_ComputerSystem"
+
+	// GPU
+	Win32VideoController              = "Win32_VideoController"
+	Win32DesktopMonitor               = "Win32_DesktopMonitor"
+)
+
+// WMI namespaces
+const (
+	RootWMI = "root/wmi"
+	RootCIMV2 = "root/cimv2"
+)
+
+// Windows physical disk prefix
+const PhysicalDrivePrefix = `\\.\\PHYSICALDRIVE`
+
+// ============================================================================
+// Linux-specific constants
+// ============================================================================
+
+// DefaultDiskPathLinux is the default system disk path for Linux
+const DefaultDiskPathLinux = "/"
+
+// Linux proc/sysfs paths
+const (
+	ProcMemInfo       = "/proc/meminfo"
+	ProcCPUInfo       = "/proc/cpuinfo"
+	ProcStat          = "/proc/stat"
+	ProcLoadAvg       = "/proc/loadavg"
+	ProcDiskStats     = "/proc/diskstats"
+	ProcNetDev        = "/proc/net/dev"
+	ProcMounts        = "/proc/mounts"
+	ProcSwaps         = "/proc/swaps"
+	SysBlock          = "/sys/block"
+	SysClassDRM       = "/sys/class/drm"
+	SysClassHwmon     = "/sys/class/hwmon"
+	SysClassThermal   = "/sys/class/thermal"
+	SysClassPowerSupply = "/sys/class/power_supply"
+)

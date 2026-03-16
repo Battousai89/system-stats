@@ -3,14 +3,11 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
 
 	"system-stats/internal/config"
-	"system-stats/internal/constants"
-	"system-stats/internal/platform/windows"
 	"system-stats/internal/types"
 )
 
@@ -36,13 +33,6 @@ const (
 )
 
 var OutputFormat = "json"
-
-func getDefaultDiskPath() string {
-	if runtime.GOOS == "windows" {
-		return constants.DefaultDiskPathWindows
-	}
-	return "/"
-}
 
 type SystemStats struct {
 	Mode             Mode
@@ -459,24 +449,24 @@ func (s *SystemStats) collectHost() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.HostInfo, _ = windows.NewHostInfo()
+		s.HostInfo, _ = getHostInfo()
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.LoadAvg, _ = windows.NewLoadAvg()
+		s.LoadAvg, _ = getLoadAvg()
 	}()
 
 	wg.Wait()
 }
 
 func (s *SystemStats) collectLoadMisc() {
-	s.LoadMisc, _ = windows.NewLoadMisc()
+	s.LoadMisc, _ = getLoadMisc()
 }
 
 func (s *SystemStats) collectVirt() {
-	s.Virtualization, _ = windows.NewVirtualizationInfo()
+	s.Virtualization, _ = getVirtualization()
 }
 
 func (s *SystemStats) collectCPU() {
@@ -485,30 +475,30 @@ func (s *SystemStats) collectCPU() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.CPUInfo, _ = windows.NewCPUInfo()
+		s.CPUInfo, _ = getCPUInfo()
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.CPUTimes, _ = windows.NewCPUTimes()
+		s.CPUTimes, _ = getCPUTimes()
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.CPUPercent, _ = windows.NewCPUPercent()
+		s.CPUPercent, _ = getCPUPercent()
 	}()
 
 	wg.Wait()
 }
 
 func (s *SystemStats) collectMem() {
-	s.Memory, _ = windows.GetVirtualMemory()
+	s.Memory, _ = getVirtualMemory()
 }
 
 func (s *SystemStats) collectSwap() {
-	s.SwapDevices, _ = windows.GetSwapDevices()
+	s.SwapDevices, _ = getSwapDevices()
 }
 
 func (s *SystemStats) collectDisk() {
@@ -517,20 +507,20 @@ func (s *SystemStats) collectDisk() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.DiskUsage, _ = windows.NewDiskUsage(constants.DefaultDiskPathWindows)
+		s.DiskUsage, _ = getDiskUsage(getDefaultDiskPath())
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.DiskIO, _ = windows.NewDiskIOCounters()
+		s.DiskIO, _ = getDiskIOCounters()
 	}()
 
 	wg.Wait()
 }
 
 func (s *SystemStats) collectDiskInfo() {
-	s.DiskDeviceInfo, _ = windows.GetAllDiskDeviceInfo()
+	s.DiskDeviceInfo, _ = getAllDiskDeviceInfo()
 }
 
 func (s *SystemStats) collectNet() {
@@ -539,42 +529,42 @@ func (s *SystemStats) collectNet() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.NetIO, _ = windows.NewNetIOCounters()
+		s.NetIO, _ = getNetIOCounters()
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.NetIfaces, _ = windows.NewNetInterfaces()
+		s.NetIfaces, _ = getNetInterfaces()
 	}()
 
 	wg.Wait()
 }
 
 func (s *SystemStats) collectNetProto() {
-	s.NetProtoCounters, _ = windows.NewNetProtocolCounters()
+	s.NetProtoCounters, _ = getNetProtocolCounters()
 }
 
 func (s *SystemStats) collectSensors() {
-	s.Sensors, _ = windows.NewSensorTemperatures()
+	s.Sensors, _ = getSensorTemperatures()
 }
 
 func (s *SystemStats) collectBattery() {
-	s.Batteries, _ = windows.NewBatteryInfo()
+	s.Batteries, _ = getBatteryInfo()
 }
 
 func (s *SystemStats) collectProcess() {
-	s.Processes, _ = windows.NewProcessInfo(config.TopProcessesCount)
+	s.Processes, _ = getProcessInfo(config.TopProcessesCount)
 }
 
 func (s *SystemStats) collectGPU() {
-	s.GPUs, _ = windows.NewGPUInfo()
+	s.GPUs, _ = getGPUInfo()
 }
 
 func (s *SystemStats) collectDocker() {
-	dockerStats, err := windows.GetAllDockerStats()
+	dockerStats, err := getAllDockerStats()
 	if err != nil {
-		// Docker может не быть установлен
+		// Docker may not be installed
 		s.DockerStats = []types.DockerStats{}
 		return
 	}

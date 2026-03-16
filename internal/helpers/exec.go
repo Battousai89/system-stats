@@ -5,12 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"os/exec"
+	"runtime"
 	"unicode/utf16"
 
 	"system-stats/internal/config"
 )
 
-// RunCommandWithTimeout выполняет команду с таймаутом
+// RunCommandWithTimeout executes a command with timeout
 func RunCommandWithTimeout(name string, arg ...string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), config.CommandTimeout)
 	defer cancel()
@@ -19,7 +20,7 @@ func RunCommandWithTimeout(name string, arg ...string) ([]byte, error) {
 	return cmd.Output()
 }
 
-// RunPowerShellCommand выполняет PowerShell команду с правильной обработкой UTF-16LE вывода
+// RunPowerShellCommand executes a PowerShell command with proper UTF-16LE output handling
 func RunPowerShellCommand(script string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), config.CommandTimeout)
 	defer cancel()
@@ -37,9 +38,9 @@ func RunPowerShellCommand(script string) ([]byte, error) {
 	err := cmd.Run()
 	output := stdout.Bytes()
 
-	// PowerShell выводит UTF-16LE с BOM
+	// PowerShell outputs UTF-16LE with BOM
 	if len(output) >= 2 && output[0] == 0xFF && output[1] == 0xFE {
-		// UTF-16LE BOM найден, конвертируем
+		// UTF-16LE BOM found, convert
 		utf16Data := make([]uint16, (len(output)-2)/2)
 		for i := 2; i < len(output); i += 2 {
 			if i+1 < len(output) {
@@ -54,11 +55,53 @@ func RunPowerShellCommand(script string) ([]byte, error) {
 		return output[3:], err
 	}
 
-	// Без BOM - предполагаем UTF-8
+	// Without BOM - assume UTF-8
 	return output, err
 }
 
-// ParseJSON парсит JSON строку
+// RunShellCommand executes a shell command (bash/sh) on Unix-like systems
+func RunShellCommand(script string) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), config.CommandTimeout)
+	defer cancel()
+
+	var shell string
+	var arg string
+
+	// Determine shell based on OS
+	if runtime.GOOS == "windows" {
+		shell = "cmd.exe"
+		arg = "/C"
+	} else {
+		shell = "/bin/sh"
+		arg = "-c"
+	}
+
+	cmd := exec.CommandContext(ctx, shell, arg, script)
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+	return stdout.Bytes(), err
+}
+
+// RunBashCommand executes a bash command on Unix-like systems
+func RunBashCommand(script string) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), config.CommandTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "bash", "-c", script)
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+	return stdout.Bytes(), err
+}
+
+// ParseJSON parses a JSON string
 func ParseJSON(data string, v interface{}) error {
 	if data == "" || data == "null" {
 		return nil
