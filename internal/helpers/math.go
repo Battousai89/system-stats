@@ -1,22 +1,18 @@
-package utils
+package helpers
 
 import "math"
 
-const (
-	KB = 1024
-	MB = 1024 * KB
-	GB = 1024 * MB
-	TB = 1024 * GB
-)
-
+// BytesToMB конвертирует байты в мегабайты
 func BytesToMB(bytes uint64) uint64 {
 	return bytes / MB
 }
 
+// BytesToGB конвертирует байты в гигабайты
 func BytesToGB(bytes uint64) uint64 {
 	return bytes / GB
 }
 
+// RoundPrecision округляет число до указанной точности
 func RoundPrecision(num float64, precision uint) float32 {
 	ratio := math.Pow(10, float64(precision))
 	return float32(math.Round(num*ratio) / ratio)

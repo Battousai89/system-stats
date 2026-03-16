@@ -1,17 +1,17 @@
-package formatter
+package helpers
 
 import (
 	"fmt"
 	"strings"
-
-	"system-stats/internal/types"
 )
 
+// Config конфигурация форматирования
 type Config struct {
 	Indent    int
 	FieldName string
 }
 
+// DefaultConfig возвращает конфигурацию по умолчанию
 func DefaultConfig() Config {
 	return Config{
 		Indent:    2,
@@ -19,7 +19,8 @@ func DefaultConfig() Config {
 	}
 }
 
-func FormatFields(fields []types.Field, config Config) string {
+// FormatFields форматирует список полей
+func FormatFields(fields []Field, config Config) string {
 	if len(fields) == 0 {
 		return ""
 	}
@@ -41,7 +42,7 @@ func FormatFields(fields []types.Field, config Config) string {
 	return sb.String()
 }
 
-func formatValue(value any, formatter types.FieldFormatter) string {
+func formatValue(value any, formatter FieldFormatter) string {
 	if formatter != nil {
 		formatted, _ := formatter(value)
 		return formatted
@@ -62,7 +63,7 @@ func formatUnit(unit string) string {
 	return " " + unit
 }
 
-func getMaxNameLen(fields []types.Field) int {
+func getMaxNameLen(fields []Field) int {
 	maxLen := 0
 	for _, field := range fields {
 		if len(field.Name) > maxLen {
@@ -72,25 +73,29 @@ func getMaxNameLen(fields []types.Field) int {
 	return maxLen
 }
 
+// Builder построитель отформатированного вывода
 type Builder struct {
-	fields []types.Field
+	fields []Field
 	config Config
 }
 
+// NewBuilder создаёт новый Builder
 func NewBuilder() *Builder {
 	return &Builder{
-		fields: make([]types.Field, 0),
+		fields: make([]Field, 0),
 		config: DefaultConfig(),
 	}
 }
 
+// WithConfig устанавливает конфигурацию
 func (b *Builder) WithConfig(config Config) *Builder {
 	b.config = config
 	return b
 }
 
+// AddField добавляет поле
 func (b *Builder) AddField(name string, value any, unit string) *Builder {
-	b.fields = append(b.fields, types.Field{
+	b.fields = append(b.fields, Field{
 		Name:  name,
 		Value: value,
 		Unit:  unit,
@@ -98,8 +103,9 @@ func (b *Builder) AddField(name string, value any, unit string) *Builder {
 	return b
 }
 
-func (b *Builder) AddFieldWithFormatter(name string, value any, unit string, formatter types.FieldFormatter) *Builder {
-	b.fields = append(b.fields, types.Field{
+// AddFieldWithFormatter добавляет поле с форматтером
+func (b *Builder) AddFieldWithFormatter(name string, value any, unit string, formatter FieldFormatter) *Builder {
+	b.fields = append(b.fields, Field{
 		Name:      name,
 		Value:     value,
 		Unit:      unit,
@@ -108,6 +114,7 @@ func (b *Builder) AddFieldWithFormatter(name string, value any, unit string, for
 	return b
 }
 
+// Build возвращает отформатированную строку
 func (b *Builder) Build() string {
 	return FormatFields(b.fields, b.config)
 }

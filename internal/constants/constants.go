@@ -1,5 +1,62 @@
-package stats
+package constants
 
+// DefaultDiskPathWindows путь к системному диску по умолчанию для Windows
+const DefaultDiskPathWindows = "C:\\"
+
+// DefaultDiskLetterWindows буква системного диска для Windows
+const DefaultDiskLetterWindows = "C:"
+
+// PowerShell команды Windows
+const (
+	// CPU
+	Win32Processor                  = "Win32_Processor"
+	Win32PerfFormattedDataPerfOSProcessor = "Win32_PerfFormattedData_PerfOS_Processor"
+	Win32PerfRawDataPerfOSSystem    = "Win32_PerfRawData_PerfOS_System"
+	MSAcpiThermalZoneTemperature    = "MSAcpi_ThermalZoneTemperature"
+	
+	// Memory
+	Win32PerfFormattedDataPerfOSMemory = "Win32_PerfFormattedData_PerfOS_Memory"
+	Win32OperatingSystem              = "Win32_OperatingSystem"
+	Win32PageFileUsage                = "Win32_PageFileUsage"
+	
+	// Disk
+	Win32LogicalDisk                  = "Win32_LogicalDisk"
+	Win32PerfFormattedDataPerfDiskLogicalDisk = "Win32_PerfFormattedData_PerfDisk_LogicalDisk"
+	Win32DiskDrive                    = "Win32_DiskDrive"
+	
+	// Network
+	Win32PerfFormattedDataTcpipNetworkInterface = "Win32_PerfFormattedData_Tcpip_NetworkInterface"
+	Win32PerfFormattedDataTcpipTCPv4 = "Win32_PerfFormattedData_Tcpip_TCPv4"
+	Win32PerfFormattedDataTcpipUDPv4 = "Win32_PerfFormattedData_Tcpip_UDPv4"
+	Win32PerfFormattedDataTcpipIPv4 = "Win32_PerfFormattedData_Tcpip_IPv4"
+	
+	// Host
+	Win32ComputerSystem = "Win32_ComputerSystem"
+	
+	// GPU
+	Win32VideoController              = "Win32_VideoController"
+	Win32DesktopMonitor               = "Win32_DesktopMonitor"
+)
+
+// WMI namespaces
+const (
+	RootWMI = "root/wmi"
+	RootCIMV2 = "root/cimv2"
+)
+
+// Физические диски Windows
+const PhysicalDrivePrefix = `\\.\\PHYSICALDRIVE`
+
+// SSD индикаторы в названии модели
+var SSDIndicators = []string{
+	"ssd", "solid state", "nvme", "m.2", "v-nand",
+	"qvo", "evo", "mx500", "860", "870", "970", "980", "990",
+	"su635", "su650", "su800", "bx500", "mx300",
+	"crucial", "samsung", "intel", "kingston", "sandisk",
+	"wd black sn", "wd blue sn", "wd red sn", "wd blue sa", // WD SSD
+}
+
+// AMDGPUIDs карта ID GPU AMD
 var AMDGPUIDs = map[string]string{
 	"0x6660": "AMD Radeon R7 M260/M265",
 	"0x6663": "AMD Radeon R7 M260",
@@ -33,6 +90,7 @@ var AMDGPUIDs = map[string]string{
 	"0x1981": "AMD Radeon 660M",
 }
 
+// IntelGPUIDs карта ID GPU Intel
 var IntelGPUIDs = map[string]string{
 	"0x5912": "Intel HD Graphics 630",
 	"0x591B": "Intel HD Graphics 630",
@@ -54,6 +112,7 @@ var IntelGPUIDs = map[string]string{
 	"0x7D55": "Intel Arc A750M",
 }
 
+// NVIDIAGPUIDs карта ID GPU NVIDIA
 var NVIDIAGPUIDs = map[string]string{
 	"0x1B80": "NVIDIA GeForce GTX 1050 Ti",
 	"0x1B81": "NVIDIA GeForce GTX 1050",

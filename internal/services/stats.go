@@ -3,14 +3,15 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
 
 	"system-stats/internal/config"
-	"system-stats/internal/stats"
+	"system-stats/internal/constants"
+	"system-stats/internal/platform/windows"
+	"system-stats/internal/types"
 )
 
 type Mode string
@@ -38,33 +39,33 @@ var OutputFormat = "json"
 
 func getDefaultDiskPath() string {
 	if runtime.GOOS == "windows" {
-		return "C:\\"
+		return constants.DefaultDiskPathWindows
 	}
 	return "/"
 }
 
 type SystemStats struct {
 	Mode             Mode
-	HostInfo         *stats.HostInfo
-	LoadAvg          *stats.LoadAvg
-	LoadMisc         *stats.LoadMisc
-	Virtualization   *stats.VirtualizationInfo
-	CPUInfo          []stats.CPUInfo
-	CPUTimes         []stats.CPUTimes
-	CPUPercent       []stats.CPUPercent
-	Memory           *stats.VirtualMemory
-	SwapDevices      []stats.SwapDevice
-	DiskUsage        *stats.DiskUsage
-	DiskIO           []stats.DiskIOCounters
-	DiskDeviceInfo   []stats.DiskDeviceInfo
-	NetIO            []stats.NetIOCounters
-	NetIfaces        []stats.NetInterface
-	NetProtoCounters []stats.NetProtocolCounters
-	Sensors          []stats.SensorTemperature
-	Batteries        []stats.BatteryInfo
-	Processes        []stats.ProcessInfo
-	GPUs             []stats.GPUInfo
-	DockerStats      []stats.DockerStats
+	HostInfo         *types.HostInfo
+	LoadAvg          *types.LoadAvg
+	LoadMisc         *types.LoadMisc
+	Virtualization   *types.VirtualizationInfo
+	CPUInfo          []types.CPUInfo
+	CPUTimes         []types.CPUTimes
+	CPUPercent       []types.CPUPercent
+	Memory           *types.VirtualMemory
+	SwapDevices      []types.SwapDevice
+	DiskUsage        *types.DiskUsage
+	DiskIO           []types.DiskIOCounters
+	DiskDeviceInfo   []types.DiskDeviceInfo
+	NetIO            []types.NetIOCounters
+	NetIfaces        []types.NetInterface
+	NetProtoCounters []types.NetProtocolCounters
+	Sensors          []types.SensorTemperature
+	Batteries        []types.BatteryInfo
+	Processes        []types.ProcessInfo
+	GPUs             []types.GPUInfo
+	DockerStats      []types.DockerStats
 	BenchmarkInfo    map[string]string `json:"benchmark,omitempty"`
 	CollectedStats   []string          `json:"collectedStats,omitempty"`
 }
@@ -439,6 +440,7 @@ func (s *SystemStats) collectAll() {
 	collectWithTiming("battery", s.collectBattery)
 	collectWithTiming("process", s.collectProcess)
 	collectWithTiming("gpu", s.collectGPU)
+	collectWithTiming("docker", s.collectDocker)
 
 	wg.Wait()
 
@@ -457,24 +459,24 @@ func (s *SystemStats) collectHost() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.HostInfo, _ = stats.NewHostInfo()
+		s.HostInfo, _ = windows.NewHostInfo()
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.LoadAvg, _ = stats.NewLoadAvg()
+		s.LoadAvg, _ = windows.NewLoadAvg()
 	}()
 
 	wg.Wait()
 }
 
 func (s *SystemStats) collectLoadMisc() {
-	s.LoadMisc, _ = stats.NewLoadMisc()
+	s.LoadMisc, _ = windows.NewLoadMisc()
 }
 
 func (s *SystemStats) collectVirt() {
-	s.Virtualization, _ = stats.NewVirtualizationInfo()
+	s.Virtualization, _ = windows.NewVirtualizationInfo()
 }
 
 func (s *SystemStats) collectCPU() {
@@ -483,34 +485,30 @@ func (s *SystemStats) collectCPU() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.CPUInfo, _ = stats.NewCPUInfo()
+		s.CPUInfo, _ = windows.NewCPUInfo()
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.CPUTimes, _ = stats.NewCPUTimes()
+		s.CPUTimes, _ = windows.NewCPUTimes()
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.CPUPercent, _ = stats.NewCPUPercent()
+		s.CPUPercent, _ = windows.NewCPUPercent()
 	}()
 
 	wg.Wait()
 }
 
 func (s *SystemStats) collectMem() {
-	vm, err := stats.GetVirtualMemory()
-	if err != nil {
-		return
-	}
-	s.Memory = stats.NewVirtualMemory(vm)
+	s.Memory, _ = windows.GetVirtualMemory()
 }
 
 func (s *SystemStats) collectSwap() {
-	s.SwapDevices, _ = stats.NewSwapDevices()
+	s.SwapDevices, _ = windows.GetSwapDevices()
 }
 
 func (s *SystemStats) collectDisk() {
@@ -519,20 +517,20 @@ func (s *SystemStats) collectDisk() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.DiskUsage, _ = stats.NewDiskUsage(getDefaultDiskPath())
+		s.DiskUsage, _ = windows.NewDiskUsage(constants.DefaultDiskPathWindows)
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.DiskIO, _ = stats.NewDiskIOCounters()
+		s.DiskIO, _ = windows.NewDiskIOCounters()
 	}()
 
 	wg.Wait()
 }
 
 func (s *SystemStats) collectDiskInfo() {
-	s.DiskDeviceInfo, _ = stats.GetAllDiskDeviceInfo()
+	s.DiskDeviceInfo, _ = windows.GetAllDiskDeviceInfo()
 }
 
 func (s *SystemStats) collectNet() {
@@ -541,43 +539,43 @@ func (s *SystemStats) collectNet() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.NetIO, _ = stats.NewNetIOCounters()
+		s.NetIO, _ = windows.NewNetIOCounters()
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.NetIfaces, _ = stats.NewNetInterfaces()
+		s.NetIfaces, _ = windows.NewNetInterfaces()
 	}()
 
 	wg.Wait()
 }
 
 func (s *SystemStats) collectNetProto() {
-	s.NetProtoCounters, _ = stats.NewNetProtocolCounters()
+	s.NetProtoCounters, _ = windows.NewNetProtocolCounters()
 }
 
 func (s *SystemStats) collectSensors() {
-	s.Sensors, _ = stats.NewSensorTemperatures()
+	s.Sensors, _ = windows.NewSensorTemperatures()
 }
 
 func (s *SystemStats) collectBattery() {
-	s.Batteries, _ = stats.NewBatteryInfo()
+	s.Batteries, _ = windows.NewBatteryInfo()
 }
 
 func (s *SystemStats) collectProcess() {
-	s.Processes, _ = stats.NewProcessInfo(config.TopProcessesCount)
+	s.Processes, _ = windows.NewProcessInfo(config.TopProcessesCount)
 }
 
 func (s *SystemStats) collectGPU() {
-	s.GPUs, _ = stats.NewGPUInfo()
+	s.GPUs, _ = windows.NewGPUInfo()
 }
 
 func (s *SystemStats) collectDocker() {
-	dockerStats, err := stats.GetAllDockerStats()
+	dockerStats, err := windows.GetAllDockerStats()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Docker warning: %v\n", err)
-		s.DockerStats = []stats.DockerStats{}
+		// Docker может не быть установлен
+		s.DockerStats = []types.DockerStats{}
 		return
 	}
 	s.DockerStats = dockerStats
@@ -626,14 +624,14 @@ func (s *SystemStats) toPrintList() string {
 
 	if len(s.CPUInfo) > 0 {
 		sb.WriteString("┌ CPU INFO\n")
-		sb.WriteString(stats.CPUInfosToPrint(s.CPUInfo) + "\n")
+		sb.WriteString(types.CPUInfosToPrint(s.CPUInfo) + "\n")
 		if len(s.CPUTimes) > 0 {
 			sb.WriteString("┌ CPU TIMES\n")
-			sb.WriteString(stats.CPUTimesToPrint(s.CPUTimes) + "\n")
+			sb.WriteString(types.CPUTimesToPrint(s.CPUTimes) + "\n")
 		}
 		if len(s.CPUPercent) > 0 {
 			sb.WriteString("┌ CPU USAGE\n")
-			sb.WriteString(stats.CPUPercentsToPrint(s.CPUPercent) + "\n")
+			sb.WriteString(types.CPUPercentsToPrint(s.CPUPercent) + "\n")
 		}
 	}
 
@@ -644,7 +642,7 @@ func (s *SystemStats) toPrintList() string {
 
 	if len(s.SwapDevices) > 0 {
 		sb.WriteString("┌ SWAP DEVICES\n")
-		sb.WriteString(stats.SwapDevicesToPrint(s.SwapDevices) + "\n")
+		sb.WriteString(types.SwapDevicesToPrint(s.SwapDevices) + "\n")
 	}
 
 	if s.DiskUsage != nil {
@@ -653,53 +651,58 @@ func (s *SystemStats) toPrintList() string {
 	}
 	if len(s.DiskIO) > 0 {
 		sb.WriteString("┌ DISK I/O\n")
-		sb.WriteString(stats.DiskIOCountersToPrint(s.DiskIO) + "\n")
+		sb.WriteString(types.DiskIOCountersToPrint(s.DiskIO) + "\n")
 	}
 
 	if len(s.DiskDeviceInfo) > 0 {
 		sb.WriteString("┌ DISK DEVICE INFO\n")
-		sb.WriteString(stats.DiskDeviceInfosToPrint(s.DiskDeviceInfo) + "\n")
+		sb.WriteString(types.DiskDeviceInfosToPrint(s.DiskDeviceInfo) + "\n")
 	}
 
 	if len(s.NetIO) > 0 {
 		sb.WriteString("┌ NETWORK I/O\n")
-		sb.WriteString(stats.NetIOCountersToPrint(s.NetIO) + "\n")
+		sb.WriteString(types.NetIOCountersToPrint(s.NetIO) + "\n")
 	}
 	if len(s.NetIfaces) > 0 {
 		sb.WriteString("┌ NETWORK INTERFACES\n")
-		sb.WriteString(stats.NetInterfacesToPrint(s.NetIfaces) + "\n")
+		sb.WriteString(types.NetInterfacesToPrint(s.NetIfaces) + "\n")
 	}
 
 	if len(s.NetProtoCounters) > 0 {
 		sb.WriteString("┌ NETWORK PROTOCOL COUNTERS\n")
-		sb.WriteString(stats.NetProtocolCountersToPrint(s.NetProtoCounters) + "\n")
+		sb.WriteString(types.NetProtocolCountersToPrint(s.NetProtoCounters) + "\n")
 	}
 
 	if len(s.Sensors) > 0 {
 		sb.WriteString("┌ TEMPERATURES\n")
-		sb.WriteString(stats.SensorTemperaturesToPrint(s.Sensors) + "\n")
+		sb.WriteString(types.SensorTemperaturesToPrint(s.Sensors) + "\n")
 	}
 
 	if len(s.Batteries) > 0 {
 		sb.WriteString("┌ BATTERY\n")
-		sb.WriteString(stats.BatteryInfosToPrint(s.Batteries) + "\n")
+		sb.WriteString(types.BatteryInfosToPrint(s.Batteries) + "\n")
 	}
 
 	if len(s.Processes) > 0 {
 		sb.WriteString("┌ TOP PROCESSES (by CPU)\n")
-		sb.WriteString(stats.ProcessInfosToPrint(s.Processes) + "\n")
+		sb.WriteString(types.ProcessInfosToPrint(s.Processes) + "\n")
 	}
 
 	if len(s.GPUs) > 0 {
 		sb.WriteString("┌ GPU INFO\n")
-		sb.WriteString(stats.GPUInfosToPrint(s.GPUs) + "\n")
+		sb.WriteString(types.GPUInfosToPrint(s.GPUs) + "\n")
 	}
 
 	if len(s.DockerStats) > 0 {
 		sb.WriteString("┌ DOCKER CONTAINERS\n")
-		sb.WriteString(stats.DockerStatsToPrint(s.DockerStats) + "\n")
+		sb.WriteString(types.DockerStatsToPrint(s.DockerStats) + "\n")
 	}
 
 	sb.WriteString("═══════════════════════════════════════════════════════════\n")
 	return sb.String()
 }
+
+// ============================================================================
+// Заглушки функций для несуществующих пока типов
+// ============================================================================
+
